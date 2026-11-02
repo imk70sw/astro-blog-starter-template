@@ -156,8 +156,8 @@ export type SvgOptions = {
   isLight?: boolean
   /** Leave out sprites taller than this many pixels. */
   maxSpriteRows?: number
-  /** `card` rounds the corners; `ribbon` fades out at both ends. */
-  frame?: 'card' | 'ribbon'
+  /** `card` rounds the corners; `ribbon` fades out at both ends; `bare` fills edge to edge. */
+  frame?: 'card' | 'ribbon' | 'bare'
   /** A title over a soft scrim at the bottom left. */
   caption?: { title: string; sub?: string }
   /** A check badge in the top right corner (the applied theme). */
@@ -175,7 +175,7 @@ const svgOf = (theme: Theme, scene: Layout, o: SvgOptions): string => {
     .map((c, i) => `<stop offset="${n(i / Math.max(1, theme.sky.length - 1))}" stop-color="${hex(c)}"/>`)
     .join('')
   const light = theme.light
-  const rx = o.frame === 'ribbon' ? 0 : Math.round(Math.min(Wp, Hp) * 0.045 + 6)
+  const rx = o.frame === 'ribbon' || o.frame === 'bare' ? 0 : Math.round(Math.min(Wp, Hp) * 0.045 + 6)
   const defs = [
     `<linearGradient id="s${id}" x1="0" y1="0" x2="0" y2="1">${stops}</linearGradient>`,
     light
@@ -227,7 +227,7 @@ const svgOf = (theme: Theme, scene: Layout, o: SvgOptions): string => {
     caption,
     badge,
     '</g>',
-    o.frame === 'ribbon'
+    o.frame === 'ribbon' || o.frame === 'bare'
       ? ''
       : `<rect x=".5" y=".5" width="${Wp - 1}" height="${Hp - 1}" rx="${rx}" fill="none" stroke="#fff" stroke-opacity=".1"/>`,
     '</svg>',
