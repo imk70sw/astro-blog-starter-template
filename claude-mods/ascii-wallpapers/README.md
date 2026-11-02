@@ -7,8 +7,8 @@ always moving.
 ten animated thumbnails. Tap a theme to apply it; with a keyboard, Tab moves
 between them (the preview follows), Enter applies, Esc closes, and 1-9 and 0 jump
 straight to one. Or just ask Claude: "change my wallpaper to koi". Your choice is
-remembered across sessions. It works in the desktop and mobile apps, VS Code and
-the terminal.
+remembered across sessions. It shows in Claude Code in a terminal, the desktop
+app and VS Code; the phone app shows the chat only, not mod panels.
 
 The theme you apply plays in a side panel beside the chat, and as a slim ribbon
 above the prompt. Either can be turned off from the picker.
