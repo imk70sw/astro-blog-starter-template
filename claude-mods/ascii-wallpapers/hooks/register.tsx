@@ -145,7 +145,7 @@ const apply = async ($: $, id: ThemeId | null) => {
 const openPicker = async ($: $) => {
   const s = await readSettings($)
   await update($, focused, () => s.theme ?? first.id)
-  await $.ui.open({
+  return $.ui.open({
     id: PICKER,
     title: 'Theme',
     focus: true,
@@ -154,6 +154,10 @@ const openPicker = async ($: $) => {
     rows: 26,
   })
 }
+
+// Some apps (the phone app among them) show the chat but not the panels a mod draws.
+const WHERE_IT_SHOWS =
+  "If nothing appears, this app doesn't draw mod panels: the picker and wallpapers show in Claude Code in a terminal, the desktop app and VS Code."
 
 const choose = async ($: $, id: ThemeId | null) => {
   await $.ui.close({ id: PICKER })
@@ -195,8 +199,12 @@ const runTheme = async ($: $, args: string): Promise<{ text: string }> => {
   const s = await readSettings($)
 
   if (a === '' || a === 'pick') {
-    await openPicker($)
-    return { text: 'Opened the wallpaper picker.' }
+    const opened = await openPicker($)
+    return {
+      text: opened.isPlaced
+        ? `Opened the wallpaper picker. ${WHERE_IT_SHOWS}`
+        : `The picker can't be shown here (${opened.reason}). ${WHERE_IT_SHOWS}`,
+    }
   }
   if (a === 'help' || a === '?') return { text: USAGE }
   if (a === 'list') {
