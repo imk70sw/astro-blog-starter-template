@@ -58,7 +58,7 @@ const svgFor = (theme: Theme, kind: Kind, W: number, H: number, isApplied = fals
         kind === 'preview'
           ? { title: theme.name, sub: theme.blurb }
           : kind === 'wall'
-            ? { title: theme.name, sub: '/theme to change' }
+            ? { title: theme.name, sub: '/wallpaper to change' }
             : undefined,
       badge: isApplied && kind !== 'ribbon' && kind !== 'wall',
     })
@@ -177,14 +177,18 @@ const step = (current: ThemeId | null, by: number): ThemeId => {
 }
 
 const USAGE = [
-  '/theme            open the picker (arrows move, Enter applies, Esc closes)',
-  '/theme <name|1-0> apply a wallpaper, e.g. /theme koi',
-  '/theme next       the next one; /theme random for a surprise',
-  '/theme panel      show or hide the side panel',
-  '/theme ribbon     show or hide the ribbon above the prompt',
-  '/theme off        turn wallpapers off',
-  '/theme colors     the built-in color theme picker',
+  '/wallpaper            open the picker (tap a theme, or Tab and Enter; Esc closes)',
+  '/wallpaper <name|1-0> apply one, e.g. /wallpaper koi',
+  '/wallpaper next       the next one; /wallpaper random for a surprise',
+  '/wallpaper panel      show or hide the side panel',
+  '/wallpaper ribbon     show or hide the ribbon above the prompt',
+  '/wallpaper off        turn wallpapers off',
+  '/themes works the same, or just ask Claude: "change my wallpaper to koi".',
 ].join('\n')
+
+const TOOL = 'wallpaper'
+const TOOL_ID = 'mcp__ascii-wallpapers__wallpaper'
+const ACTIONS = ['open', 'apply', 'next', 'random', 'off', 'list', 'panel', 'ribbon'] as const
 
 const runTheme = async ($: $, args: string): Promise<{ text: string }> => {
   const a = args.trim().toLowerCase()
@@ -204,7 +208,7 @@ const runTheme = async ($: $, args: string): Promise<{ text: string }> => {
   }
   if (a === 'off' || a === 'none' || a === 'stop') {
     await apply($, null)
-    return { text: 'Wallpaper off. /theme brings it back.' }
+    return { text: 'Wallpaper off. /wallpaper brings it back.' }
   }
   if (a === 'panel' || a === 'ribbon') {
     const after = await toggle($, a)
@@ -231,10 +235,40 @@ const runTheme = async ($: $, args: string): Promise<{ text: string }> => {
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
+    // /theme is Claude Code's own color theme command, and the apps keep it,
+    // so the mod's own names are /wallpaper and /themes, plus a tool Claude
+    // calls when the person just asks.
     await $.command.register({
       name: 'wallpaper',
-      description: 'Pick an animated ASCII wallpaper (same as /theme)',
+      description: 'Live pixel-art wallpapers: open the picker or apply one',
       argumentHint: '[name|next|random|off]',
+    })
+    await $.command.register({
+      name: 'themes',
+      description: 'Live pixel-art wallpapers (same as /wallpaper)',
+      argumentHint: '[name|next|random|off]',
+    })
+    await $.tool.register({
+      name: TOOL,
+      description: [
+        "Changes the person's live pixel-art chat wallpaper (the ascii-wallpapers mod).",
+        'Use it whenever they ask about wallpapers, chat themes or backgrounds: to open the picker, apply one, cycle, or turn it off.',
+        `Themes: ${THEMES.map(t => t.name).join(', ')}.`,
+        "Not Claude Code's color theme: that is the /theme command.",
+      ].join(' '),
+      inputSchema: {
+        type: 'object',
+        properties: {
+          action: {
+            type: 'string',
+            enum: [...ACTIONS],
+            description: 'open the picker; apply a theme (with `theme`); next; random; off; list; panel or ribbon to show or hide those',
+          },
+          theme: { type: 'string', description: 'For apply: a theme name, e.g. "Koi Pond" or "koi"' },
+        },
+        required: ['action'],
+      },
+      isDeferred: false,
     })
     const s = sanitize(await $.store.get('settings'))
     await update($, settings, () => s)
@@ -249,7 +283,7 @@ export const register: Register = on => {
   on('command.describe', { command: 'theme' }, ($, e, next) =>
     next({
       ...e,
-      description: 'Animated ASCII wallpapers (/theme colors for the color theme)',
+      description: 'Color theme, or live wallpapers in a terminal (/wallpaper everywhere)',
       argumentHint: '[name|next|off|colors]',
     }),
   )
@@ -262,6 +296,17 @@ export const register: Register = on => {
   }).catch(($, e, next) => next(e))
 
   on('command.run', { command: 'wallpaper' }, ($, e) => runTheme($, e.args))
+  on('command.run', { command: 'themes' }, ($, e) => runTheme($, e.args))
+
+  on('tool.call', { tool: TOOL_ID }, async ($, e) => {
+    const input = e as unknown as { action?: unknown; theme?: unknown }
+    const action = typeof input.action === 'string' ? input.action : 'open'
+    const theme = typeof input.theme === 'string' ? input.theme : ''
+    const args = action === 'open' ? '' : action === 'apply' ? theme : action
+    const { text } = await runTheme($, args)
+
+    return { result: text }
+  })
 
   on('ui.focus', { requestId: PICKER }, async ($, e, next) => {
     const result = await next(e)
@@ -296,7 +341,7 @@ export const register: Register = on => {
         <Box flexDirection="column" gap={1}>
           <Box justifyContent="space-between">
             <Text>
-              <Text bold color="claude">/theme</Text>
+              <Text bold color="claude">/wallpaper</Text>
               <Text bold>  Live wallpapers</Text>
               <Text dimColor>  {position}</Text>
             </Text>
@@ -351,7 +396,7 @@ export const register: Register = on => {
         <Box justifyContent="space-between" alignItems="center">
           <Box gap="sm" alignItems="center">
             <Text mono weight="bold" color="claude">
-              /theme
+              /wallpaper
             </Text>
             <Text weight="semibold">Live wallpapers</Text>
             <Text size="footnote" dimColor tabular>
@@ -415,7 +460,7 @@ export const register: Register = on => {
 
     if (e.surface === 'terminal') {
       const { Box, Text, Raster } = $.ui.resolve(e)
-      if (!theme) return <Text dimColor>No wallpaper. Run /theme to pick one.</Text>
+      if (!theme) return <Text dimColor>No wallpaper. Run /wallpaper to pick one.</Text>
       const rows = roomRows - 1
       const made = canvasFor(theme, columns, rows)
       animate($, WALL, 'wall', made)
@@ -425,14 +470,14 @@ export const register: Register = on => {
           <Raster key="wall" columns={columns} rows={rows} cells={frame(made, now())} />
           <Box justifyContent="space-between">
             <Text bold>{theme.name}</Text>
-            <Text dimColor>/theme to change</Text>
+            <Text dimColor>/wallpaper to change</Text>
           </Box>
         </Box>
       )
     }
 
     const { Text, Svg } = $.ui.resolve(e)
-    if (!theme) return <Text dimColor>No wallpaper. Run /theme to pick one.</Text>
+    if (!theme) return <Text dimColor>No wallpaper. Run /wallpaper to pick one.</Text>
     // A cell is about twice as tall as it is wide: keep the panel's shape, in
     // tiles a little larger than the transcript's characters.
     const W = clamp(Math.round(columns * 0.62), 22, 40)

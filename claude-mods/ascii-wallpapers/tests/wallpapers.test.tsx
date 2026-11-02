@@ -39,6 +39,7 @@ const engine = (on: On, stored?: Record<string, unknown>) => {
     return { value: undefined }
   })
   on('command.register', (_, e) => ({ value: { command: e.name } }))
+  on('tool.register', (_, e) => ({ value: { tool: `mcp__ascii-wallpapers__${e.name}` } }))
   on('ui.open', (_, e) => {
     opened.push(`${e.id}:${e.title ?? ''}`)
     return { value: { isPlaced: true } }
@@ -163,6 +164,21 @@ test('the wallpaper pane and the ribbon draw the applied theme', async ($, on) =
   })
   expect(await band.find({ type: 'Svg' })).toBeDefined()
   await band.unmount()
+})
+
+test('/themes and the wallpaper tool work where /theme is the app\'s own', async ($, on) => {
+  const { opened, store } = engine(on)
+  await $.session.start({ cwd: '/', surface: 'mobile', isInteractive: true })
+
+  await $.command.run(run('themes', ''))
+  expect(opened).toContain('theme-picker:Theme')
+
+  const viaTool = await $.tool.call({ tool: 'mcp__ascii-wallpapers__wallpaper', action: 'apply', theme: 'sakura' })
+  expect(viaTool.text ?? JSON.stringify(viaTool.result)).toContain('Sakura')
+  expect(store.settings).toMatchObject({ theme: 'sakura' })
+
+  await $.tool.call({ tool: 'mcp__ascii-wallpapers__wallpaper', action: 'off' })
+  expect(store.settings).toMatchObject({ theme: null })
 })
 
 test('every theme renders within the limits, at every size the mod draws', async () => {

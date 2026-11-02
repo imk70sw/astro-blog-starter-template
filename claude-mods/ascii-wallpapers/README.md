@@ -3,10 +3,12 @@
 Ten live pixel-art wallpapers for Claude Code, painted in character tiles and
 always moving.
 
-`/theme` opens a picker: a large live preview of the focused theme over a grid of
-ten animated thumbnails. Arrow keys or Tab move between them (the preview follows),
-Enter applies, Esc closes. Number keys 1-9 and 0 jump straight to a theme. Your
-choice is remembered across sessions.
+`/wallpaper` (or `/themes`) opens a picker: a large live preview over a grid of
+ten animated thumbnails. Tap a theme to apply it; with a keyboard, Tab moves
+between them (the preview follows), Enter applies, Esc closes, and 1-9 and 0 jump
+straight to one. Or just ask Claude: "change my wallpaper to koi". Your choice is
+remembered across sessions. It works in the desktop and mobile apps, VS Code and
+the terminal.
 
 The theme you apply plays in a side panel beside the chat, and as a slim ribbon
 above the prompt. Either can be turned off from the picker.
@@ -28,15 +30,16 @@ above the prompt. Either can be turned off from the picker.
 
 | Command | What it does |
 | --- | --- |
-| `/theme` | Open the picker |
-| `/theme koi`, `/theme 2` | Apply a theme by name or number |
-| `/theme next`, `/theme random` | Cycle, or pick a surprise |
-| `/theme panel`, `/theme ribbon` | Show or hide the side panel or the ribbon |
-| `/theme off` | Turn wallpapers off |
-| `/theme list` | List the themes |
-| `/theme colors` | Claude Code's built-in color theme picker |
+| `/wallpaper` | Open the picker |
+| `/wallpaper koi`, `/wallpaper 2` | Apply a theme by name or number |
+| `/wallpaper next`, `/wallpaper random` | Cycle, or pick a surprise |
+| `/wallpaper panel`, `/wallpaper ribbon` | Show or hide the side panel or the ribbon |
+| `/wallpaper off` | Turn wallpapers off |
+| `/wallpaper list` | List the themes |
 
-`/wallpaper` works the same as `/theme`.
+`/themes` works the same. In a terminal, `/theme` opens the picker too, and
+`/theme colors` reaches Claude Code's own color theme; the apps keep `/theme`
+for themselves.
 
 ## How it works
 
