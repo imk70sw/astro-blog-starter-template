@@ -1,0 +1,11 @@
+{
+  "name": "imk70sw-mods",
+  "owner": { "name": "imk70sw" },
+  "plugins": [
+    {
+      "name": "ascii-wallpapers",
+      "source": "./claude-mods/ascii-wallpapers",
+      "description": "/theme opens a picker of 10 live pixel-art wallpapers that animate beside your chat"
+    }
+  ]
+}

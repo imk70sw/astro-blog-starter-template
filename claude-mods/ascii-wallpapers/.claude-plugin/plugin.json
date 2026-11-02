@@ -1,0 +1,7 @@
+{
+  "name": "ascii-wallpapers",
+  "version": "0.2.0",
+  "description": "/theme opens a picker of 10 live pixel-art wallpapers that animate beside your chat",
+  "types": "./types/index.d.ts",
+  "license": "MIT"
+}
